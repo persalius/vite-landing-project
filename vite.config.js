@@ -22,7 +22,6 @@ const htmlReplacer = () => {
 export default defineConfig({
   plugins: [htmlReplacer()],
   build: {
-    assetsInlineLimit: 0,
     rollupOptions: {
       input: {
         main: resolve(__dirname, "index.html"),
