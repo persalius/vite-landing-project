@@ -1,32 +1,25 @@
-import { defineConfig } from "vite";
-import { resolve } from "path";
+// import { defineConfig } from "vite";
+// import { resolve } from "path";
 
-const htmlReplacer = () => {
-  return {
-    name: "html-replacer",
-    // Хук 'transformIndexHtml' используется для манипуляций с HTML
-    // до того, как он будет передан в Rollup.
-    transformIndexHtml(html) {
-      // 1. Определяем, что нужно заменить
-      const target = '<div id="template"></div>';
+// const htmlReplacer = () => {
+//   return {
+//     name: "html-replacer",
+//     transformIndexHtml(html) {
+//       const target = '<div id="template"></div>';
+//       const replacement = '\n<section id="app-root">Section</section>';
+//       return html.replace(target, replacement);
+//     },
+//   };
+// };
 
-      // 2. Определяем, на что нужно заменить
-      const replacement = '\n<section id="app-root">Section</section>';
-
-      // 3. Выполняем замену
-      return html.replace(target, replacement);
-    },
-  };
-};
-
-export default defineConfig({
-  // plugins: [htmlReplacer()],
-  build: {
-    rollupOptions: {
-      input: {
-        main: resolve(__dirname, "index.html"),
-        about: resolve(__dirname, "about.html"),
-      },
-    },
-  },
-});
+// export default defineConfig({
+//   plugins: [htmlReplacer()],
+//   build: {
+//     rollupOptions: {
+//       input: {
+//         main: resolve(__dirname, "index.html"),
+//         about: resolve(__dirname, "about.html"),
+//       },
+//     },
+//   },
+// });
