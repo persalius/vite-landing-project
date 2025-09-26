@@ -20,7 +20,7 @@ const htmlReplacer = () => {
 };
 
 export default defineConfig({
-  plugins: [htmlReplacer()],
+  // plugins: [htmlReplacer()],
   build: {
     rollupOptions: {
       input: {
