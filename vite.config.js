@@ -22,4 +22,14 @@ export default defineConfig({
       },
     },
   },
+  server: {
+    port: 3000,
+    host: true,
+    // Важно для обслуживания статических файлов
+    fs: {
+      strict: false,
+    },
+  },
+  // Для правильного определения MIME-типов
+  assetsInclude: ["**/*.jpg", "**/*.jpeg", "**/*.png", "**/*.webp"],
 });
