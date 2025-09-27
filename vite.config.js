@@ -23,8 +23,7 @@ export default defineConfig({
     },
   },
   server: {
-    headers: {
-      "Content-Type": "image/jpeg",
-    },
+    port: 3000,
+    host: true,
   },
 });
