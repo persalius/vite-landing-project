@@ -1,5 +1,5 @@
 import { defineConfig } from "vite";
-import { resolve } from "path";
+import { resolve, path } from "path";
 
 const htmlReplacer = () => {
   return {
@@ -23,7 +23,7 @@ export default defineConfig({
     },
   },
   server: {
-    port: 3000,
-    host: true,
+    host: "::",
+    port: 8080,
   },
 });
