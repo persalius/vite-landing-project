@@ -22,4 +22,9 @@ export default defineConfig({
       },
     },
   },
+  server: {
+    headers: {
+      "Content-Type": "image/jpeg",
+    },
+  },
 });
