@@ -1,5 +1,5 @@
 import { defineConfig } from "vite";
-import { resolve, path } from "path";
+import { resolve } from "path";
 
 const htmlReplacer = () => {
   return {
@@ -21,9 +21,5 @@ export default defineConfig({
         about: resolve(__dirname, "about.html"),
       },
     },
-  },
-  server: {
-    host: "::",
-    port: 8080,
   },
 });
