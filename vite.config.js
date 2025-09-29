@@ -1,10 +1,5 @@
 import { defineConfig } from "vite";
 import { resolve } from "path";
-import fs from "fs";
-
-var cachedData = fs.readFileSync("./package.json", "utf-8");
-
-console.log("Cached Data:", cachedData);
 
 const htmlReplacer = () => {
   return {
