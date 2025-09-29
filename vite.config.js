@@ -4,14 +4,12 @@ import fs from "fs";
 
 var cachedData = fs.readFileSync("./about.html", "utf-8");
 
-console.log("Cached Data:", cachedData);
-
 const htmlReplacer = () => {
   return {
     name: "html-replacer",
     transformIndexHtml(html, ctx) {
       const target = '<div id="template"></div>';
-      const replacement = '\n<section id="app-root">Section</section>';
+      const replacement = `\n<section id="app-root">${cachedData}</section>`;
       return html.replace(target, replacement);
     },
   };
