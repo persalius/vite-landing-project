@@ -28,7 +28,7 @@ function watchTemplatesPlugin() {
 }
 
 function htmlTemplatesPlugin() {
-  const templatesDir = path.resolve("templates");
+  const templatesDir = path.resolve("../templates");
 
   return {
     name: "html-template-plugin",
