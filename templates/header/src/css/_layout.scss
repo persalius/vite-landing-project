@@ -1,0 +1,20 @@
+ul {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px;
+  border: 1px solid black;
+  border-radius: 16px;
+}
+
+li {
+  color: blue;
+  text-decoration: underline;
+  list-style: none;
+  padding: 5px 10px;
+  border-bottom: 1px solid gray;
+}
+
+li:last-child {
+  border-bottom: none;
+}

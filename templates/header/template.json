@@ -1,0 +1,22 @@
+{
+  "name": "header",
+  "entry": "src/index.html",
+  "styles": ["src/css/index.scss"],
+  "_comments": {
+    "container": "head | body",
+    "position": "start | end | comment",
+    "targetComment": "if position is comment, specify the target comment"
+  },
+  "scripts": [
+    {
+      "file": "src/js/index.js",
+      "container": "body",
+      "position": "end"
+    },
+    {
+      "file": "src/js/cookies.js",
+      "position": "comment",
+      "targetComment": "cookie-modal"
+    }
+  ]
+}
