@@ -10,6 +10,7 @@ function watchTemplatesPlugin() {
 
   return {
     name: "watch-templates",
+    enforce: "pre",
     configureServer(server) {
       server.watcher.add(path.resolve(templatesDir, "**/*"));
 
@@ -31,6 +32,7 @@ function htmlTemplatesPlugin() {
 
   return {
     name: "html-template-plugin",
+    enforce: "pre",
     transformIndexHtml(html) {
       if (usedTemplates && typeof usedTemplates.clear === "function") {
         usedTemplates.clear();
@@ -120,6 +122,7 @@ function scssTemplatesPlugin() {
 
   return {
     name: "scss-templates",
+    enforce: "pre",
     resolveId(id) {
       if (id === "virtual:templates.scss") return id;
     },
