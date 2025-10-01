@@ -118,7 +118,7 @@ function htmlTemplatesPlugin() {
 }
 
 function scssTemplatesPlugin() {
-  const templatesDir = path.resolve("templates");
+  const templatesDir = path.resolve("../templates");
 
   return {
     name: "scss-templates",
