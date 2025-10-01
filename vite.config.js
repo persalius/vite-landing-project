@@ -6,7 +6,7 @@ import * as cheerio from "cheerio";
 const usedTemplates = new Set();
 
 function watchTemplatesPlugin() {
-  const templatesDir = path.resolve("templates");
+  const templatesDir = path.resolve("../templates");
 
   return {
     name: "watch-templates",
