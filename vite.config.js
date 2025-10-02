@@ -1,9 +1,9 @@
 import { defineConfig } from "vite";
 import path from "path";
-import plugins from "./parser/pligins.js";
+import plugins from "./parser/plugins.js";
 
 export default defineConfig({
-  plugins: [...plugins.map((fn) => fn())],
+  plugins: [...plugins],
   build: {
     rollupOptions: {
       input: {
