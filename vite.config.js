@@ -12,7 +12,7 @@ function watchTemplatesPlugin() {
     name: "watch-templates",
     enforce: "pre",
     configureServer(server) {
-      server.watcher.add(path.resolve(templatesDir, "**/*"));
+      server.watcher.add(templatesDir);
 
       server.watcher.on("change", (file) => {
         if (file.startsWith(templatesDir)) {
