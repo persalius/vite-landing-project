@@ -3,11 +3,30 @@ import path from "path";
 import fs from "fs";
 import * as cheerio from "cheerio";
 
+const templatesDir = path.resolve("../templates");
 const usedTemplates = new Set();
+let templatesIndex = buildTemplatesIndex(templatesDir);
 
+// --- Строим индекс шаблонов ---
+function buildTemplatesIndex(dir) {
+  const index = new Map();
+  const folders = fs
+    .readdirSync(dir, { withFileTypes: true })
+    .filter((d) => d.isDirectory());
+
+  folders.forEach((folder) => {
+    const jsonPath = path.join(dir, folder.name, "template.json");
+    if (!fs.existsSync(jsonPath)) return;
+
+    const { name } = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
+    if (name) index.set(name, path.join(dir, folder.name));
+  });
+
+  return index;
+}
+
+// --- Watch шаблонов ---
 function watchTemplatesPlugin() {
-  const templatesDir = path.resolve("../templates");
-
   return {
     name: "watch-templates",
     enforce: "pre",
@@ -16,6 +35,15 @@ function watchTemplatesPlugin() {
 
       server.watcher.on("change", (file) => {
         if (file.startsWith(templatesDir)) {
+          // Обновляем индекс для изменённой папки
+          const folderName = path.relative(templatesDir, path.dirname(file));
+          const jsonPath = path.join(templatesDir, folderName, "template.json");
+          if (fs.existsSync(jsonPath)) {
+            const { name } = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
+            if (name)
+              templatesIndex.set(name, path.join(templatesDir, folderName));
+          }
+
           // Сообщаем Vite обновить страницу
           server.ws.send({
             type: "full-reload",
@@ -27,9 +55,8 @@ function watchTemplatesPlugin() {
   };
 }
 
+// --- HTML шаблоны ---
 function htmlTemplatesPlugin() {
-  const templatesDir = path.resolve("../templates");
-
   return {
     name: "html-template-plugin",
     enforce: "pre",
@@ -45,20 +72,15 @@ function htmlTemplatesPlugin() {
         if (!templateName) return;
         usedTemplates.add(templateName);
 
-        const templateJsonPath = path.join(
-          templatesDir,
-          templateName,
-          "template.json"
-        );
+        const templatePath = templatesIndex.get(templateName);
+        if (!templatePath) return;
+
+        const templateJsonPath = path.join(templatePath, "template.json");
         if (!fs.existsSync(templateJsonPath)) return;
         const template = JSON.parse(fs.readFileSync(templateJsonPath, "utf-8"));
 
         // HTML
-        const templateHtmlPath = path.join(
-          templatesDir,
-          templateName,
-          template.entry
-        );
+        const templateHtmlPath = path.join(templatePath, template.entry);
         if (fs.existsSync(templateHtmlPath)) {
           let templateHtml = fs.readFileSync(templateHtmlPath, "utf-8");
 
@@ -117,9 +139,8 @@ function htmlTemplatesPlugin() {
   };
 }
 
+// --- SCSS шаблоны ---
 function scssTemplatesPlugin() {
-  const templatesDir = path.resolve("../templates");
-
   return {
     name: "scss-templates",
     enforce: "pre",
@@ -132,22 +153,21 @@ function scssTemplatesPlugin() {
 
         const imports = Array.from(usedTemplates)
           .map((templateName) => {
-            const templateJson = path.join(
-              templatesDir,
-              templateName,
-              "template.json"
-            );
-            if (!fs.existsSync(templateJson)) return null;
+            const templatePath = templatesIndex.get(templateName);
+            if (!templatePath) return null;
+
+            const templateJsonPath = path.join(templatePath, "template.json");
+            if (!fs.existsSync(templateJsonPath)) return null;
 
             const { styles } = JSON.parse(
-              fs.readFileSync(templateJson, "utf-8")
+              fs.readFileSync(templateJsonPath, "utf-8")
             );
             if (!styles || styles.length === 0) return null;
 
             // Подключаем каждый SCSS с templateName как namespace
             return styles
               .map((file) => {
-                const abs = path.join(templatesDir, templateName, file);
+                const abs = path.join(templatePath, file);
                 const rel = path
                   .relative(process.cwd(), abs)
                   .replace(/\\/g, "/");
