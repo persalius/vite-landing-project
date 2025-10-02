@@ -8,9 +8,8 @@ let templatesIndex = buildTemplatesIndex(templatesDir);
 
 // --- Общая функция для сканирования HTML файлов ---
 function scanHtmlForTemplates() {
-  if (usedTemplates.size > 0) return; // Уже заполнено
+  if (usedTemplates.size) return; // Уже заполнено
 
-  console.log("Scanning HTML files for templates...");
   const htmlFiles = ["index.html", "about.html"];
 
   htmlFiles.forEach((htmlFile) => {
@@ -31,8 +30,6 @@ function scanHtmlForTemplates() {
       console.warn(`Error processing ${htmlFile}:`, error.message);
     }
   });
-
-  console.log("Found templates:", Array.from(usedTemplates));
 }
 
 // --- Строим индекс шаблонов ---
