@@ -94,9 +94,32 @@ function watchTemplatesPlugin() {
 
 // --- HTML шаблоны ---
 function htmlTemplatesPlugin() {
+  let isProduction = false;
+  let bundleInfo = new Map(); // Хранилище информации о bundle для production
+
   return {
     name: "html-template-plugin",
     enforce: "pre",
+
+    configResolved(config) {
+      isProduction = config.command === "build";
+    },
+
+    generateBundle(options, bundle) {
+      if (isProduction) {
+        // Собираем информацию о сгенерированных файлах
+        Object.entries(bundle).forEach(([fileName, chunk]) => {
+          if (chunk.type === "chunk" && fileName.includes("templates/")) {
+            // Извлекаем оригинальный путь из facadeModuleId
+            const originalPath = chunk.facadeModuleId;
+            if (originalPath) {
+              bundleInfo.set(originalPath, fileName);
+            }
+          }
+        });
+      }
+    },
+
     transformIndexHtml(html) {
       if (usedTemplates && typeof usedTemplates.clear === "function") {
         usedTemplates.clear();
@@ -135,9 +158,26 @@ function htmlTemplatesPlugin() {
         if (template.scripts) {
           template.scripts.forEach(
             ({ file, container = "body", position = "end", targetComment }) => {
-              // Упрощаем путь: убираем промежуточные папки из file
-              const fileName = path.basename(file);
-              const scriptTag = `<script type="module" src="/templates/${templateName}/js/${fileName}"></script>`;
+              const fileName = path.basename(file, ".js");
+
+              let scriptSrc;
+              if (isProduction) {
+                // В production ищем обработанный файл в bundle
+                const originalFilePath = path.join(templatePath, file);
+                const bundledFileName = bundleInfo.get(originalFilePath);
+
+                if (bundledFileName) {
+                  scriptSrc = `/${bundledFileName}`;
+                } else {
+                  // Fallback: используем предполагаемый путь
+                  scriptSrc = `/assets/templates/${templateName}/js/${fileName}.js`;
+                }
+              } else {
+                // В dev режиме используем middleware путь
+                scriptSrc = `/templates/${templateName}/js/${fileName}.js`;
+              }
+
+              const scriptTag = `<script type="module" src="${scriptSrc}"></script>`;
 
               if (position === "end") {
                 $(container).append(scriptTag);
@@ -225,6 +265,54 @@ function templateJsPlugin() {
     name: "template-js",
     enforce: "pre",
 
+    buildStart(opts) {
+      // Добавляем JS файлы шаблонов как входные точки для полной обработки Vite
+      if (!fs.existsSync(templatesDir)) {
+        return;
+      }
+
+      const folders = fs
+        .readdirSync(templatesDir, { withFileTypes: true })
+        .filter((d) => d.isDirectory());
+
+      const inputs = {};
+
+      folders.forEach((folder) => {
+        const jsonPath = path.join(templatesDir, folder.name, "template.json");
+        if (!fs.existsSync(jsonPath)) return;
+
+        try {
+          const templateConfig = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
+          const { name: templateName, scripts } = templateConfig;
+          if (!scripts || !templateName) return;
+
+          scripts.forEach(({ file }) => {
+            const sourcePath = path.join(templatesDir, folder.name, file);
+            if (!fs.existsSync(sourcePath)) return;
+
+            const fileName = path.basename(file, ".js");
+            const inputKey = `templates/${templateName}/js/${fileName}`;
+            inputs[inputKey] = sourcePath;
+          });
+        } catch (error) {
+          console.warn(
+            `Error reading template.json for ${folder.name}:`,
+            error.message
+          );
+        }
+      });
+
+      // Добавляем найденные файлы как входные точки
+      if (Object.keys(inputs).length) {
+        // Обновляем входные точки Rollup
+        opts.input = opts.input || {};
+        if (typeof opts.input === "string") {
+          opts.input = { main: opts.input };
+        }
+        Object.assign(opts.input, inputs);
+      }
+    },
+
     configureServer(server) {
       // Middleware для обслуживания JS файлов шаблонов в dev режиме
       server.middlewares.use("/templates", (req, res, next) => {
@@ -304,50 +392,6 @@ function templateJsPlugin() {
           }
         }
         next();
-      });
-    },
-
-    generateBundle(options, bundle) {
-      // Копируем JS файлы шаблонов в dist при сборке
-      if (!fs.existsSync(templatesDir)) {
-        return;
-      }
-
-      const folders = fs
-        .readdirSync(templatesDir, { withFileTypes: true })
-        .filter((d) => d.isDirectory());
-
-      folders.forEach((folder) => {
-        const jsonPath = path.join(templatesDir, folder.name, "template.json");
-        if (!fs.existsSync(jsonPath)) return;
-
-        try {
-          const templateConfig = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
-          const { name: templateName, scripts } = templateConfig;
-          if (!scripts || !templateName) return;
-
-          scripts.forEach(({ file }) => {
-            const sourcePath = path.join(templatesDir, folder.name, file);
-            if (!fs.existsSync(sourcePath)) return;
-
-            const content = fs.readFileSync(sourcePath, "utf-8");
-            // Упрощаем путь: используем название шаблона и только имя файла
-            const fileName = path.basename(file);
-            const outputPath = `templates/${templateName}/js/${fileName}`;
-
-            // Добавляем файл в bundle для включения в сборку
-            this.emitFile({
-              type: "asset",
-              fileName: outputPath,
-              source: content,
-            });
-          });
-        } catch (error) {
-          console.warn(
-            `Error processing scripts for template ${folder.name}:`,
-            error.message
-          );
-        }
       });
     },
   };
