@@ -31,8 +31,6 @@ function scanHtmlForTemplates() {
       console.warn(`Error processing ${htmlFile}:`, error.message);
     }
   });
-
-  console.log("Found templates:", Array.from(usedTemplates));
 }
 
 // --- Строим индекс шаблонов ---
