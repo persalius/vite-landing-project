@@ -228,8 +228,7 @@ function scssTemplatesPlugin() {
       if (id === "virtual:templates.scss") {
         // Если шаблоны еще не найдены в transformIndexHtml, сканируем HTML файлы
         if (!usedTemplates || !usedTemplates.size) {
-          console.log("usedTemplates empty, scanning HTML files...");
-          scanHtmlForTemplates();
+          scanHtmlForTemplates(); // build
         }
 
         if (!usedTemplates || usedTemplates.size === 0) {
