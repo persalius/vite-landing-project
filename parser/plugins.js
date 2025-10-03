@@ -8,9 +8,10 @@ let templatesIndex = buildTemplatesIndex(templatesDir);
 
 // --- Общая функция для сканирования HTML файлов ---
 function scanHtmlForTemplates() {
-  if (usedTemplates.size) return; // Уже заполнено
-
-  const htmlFiles = ["index.html", "about.html"];
+  // Динамически находим все HTML файлы в корне проекта
+  const htmlFiles = fs
+    .readdirSync(process.cwd())
+    .filter((file) => file.endsWith(".html") && fs.statSync(file).isFile());
 
   htmlFiles.forEach((htmlFile) => {
     try {
@@ -30,6 +31,8 @@ function scanHtmlForTemplates() {
       console.warn(`Error processing ${htmlFile}:`, error.message);
     }
   });
+
+  console.log("Found templates:", Array.from(usedTemplates));
 }
 
 // --- Строим индекс шаблонов ---
@@ -118,10 +121,6 @@ function htmlTemplatesPlugin() {
     },
 
     transformIndexHtml(html) {
-      if (usedTemplates && typeof usedTemplates.clear === "function") {
-        usedTemplates.clear();
-      }
-
       const $ = cheerio.load(html, { decodeEntities: false });
 
       $("div.template").each((_, el) => {
@@ -214,8 +213,11 @@ function scssTemplatesPlugin() {
     },
     load(id) {
       if (id === "virtual:templates.scss") {
-        // Если шаблоны не найдены, сканируем HTML файлы
-        scanHtmlForTemplates();
+        // Если шаблоны еще не найдены в transformIndexHtml, сканируем HTML файлы
+        if (!usedTemplates || usedTemplates.size === 0) {
+          console.log("usedTemplates empty, scanning HTML files...");
+          scanHtmlForTemplates();
+        }
 
         if (!usedTemplates || usedTemplates.size === 0) {
           console.log("No templates found");
@@ -248,8 +250,6 @@ function scssTemplatesPlugin() {
           })
           .filter(Boolean)
           .join("\n");
-
-        console.log("Generated SCSS imports:", imports);
         return imports;
       }
     },
