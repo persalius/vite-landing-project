@@ -104,6 +104,7 @@ function htmlTemplatesPlugin() {
     },
 
     generateBundle(options, bundle) {
+      // Необходимо для сбора JS файлов
       if (isProduction) {
         // Собираем информацию о сгенерированных файлах
         Object.entries(bundle).forEach(([fileName, chunk]) => {
@@ -120,6 +121,7 @@ function htmlTemplatesPlugin() {
 
     transformIndexHtml(html) {
       const $ = cheerio.load(html, { decodeEntities: false });
+      usedTemplates.clear();
 
       $("div.template").each((_, el) => {
         const templateName = $(el).attr("data-template");
@@ -206,13 +208,26 @@ function scssTemplatesPlugin() {
   return {
     name: "scss-templates",
     enforce: "post",
+    handleHotUpdate({ file, server }) {
+      if (file.endsWith(".html")) {
+        // Пересканируем шаблоны
+        // Инвалидируем модуль
+        const module = server.moduleGraph.getModuleById(
+          "virtual:templates.scss"
+        );
+        if (module) {
+          server.moduleGraph.invalidateModule(module);
+          return []; // Предотвращаем дефолтный HMR
+        }
+      }
+    },
     resolveId(id) {
       if (id === "virtual:templates.scss") return id;
     },
     load(id) {
       if (id === "virtual:templates.scss") {
         // Если шаблоны еще не найдены в transformIndexHtml, сканируем HTML файлы
-        if (!usedTemplates || usedTemplates.size === 0) {
+        if (!usedTemplates || !usedTemplates.size) {
           console.log("usedTemplates empty, scanning HTML files...");
           scanHtmlForTemplates();
         }
