@@ -1,21 +1,26 @@
 import path from "path";
 import fs from "fs";
 import * as cheerio from "cheerio";
+import { paths } from "../config/paths.js";
 
-const templatesDir = path.resolve("../templates");
+const templatesDir = paths.templates;
 const usedTemplates = new Set();
 let templatesIndex = buildTemplatesIndex(templatesDir);
 
 // --- Общая функция для сканирования HTML файлов ---
 function scanHtmlForTemplates() {
-  // Динамически находим все HTML файлы в корне проекта
+  // Динамически находим все HTML файлы в папке landing page
   const htmlFiles = fs
-    .readdirSync(process.cwd())
-    .filter((file) => file.endsWith(".html") && fs.statSync(file).isFile());
+    .readdirSync(paths.landingPage)
+    .filter(
+      (file) =>
+        file.endsWith(".html") &&
+        fs.statSync(path.join(paths.landingPage, file)).isFile()
+    );
 
   htmlFiles.forEach((htmlFile) => {
     try {
-      const htmlPath = path.resolve(htmlFile);
+      const htmlPath = path.resolve(paths.landingPage, htmlFile);
       if (fs.existsSync(htmlPath)) {
         const htmlContent = fs.readFileSync(htmlPath, "utf-8");
         const $ = cheerio.load(htmlContent, { decodeEntities: false });
