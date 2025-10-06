@@ -1,12 +1,12 @@
 import { defineConfig } from "vite";
 import path from "path";
 
-const testPlugin = () => {
-  console.log("Test plugin ---->");
-};
+// const testPlugin = () => {
+//   console.log("Test plugin ---->");
+// };
 
 export default defineConfig({
-  plugins: [testPlugin()],
+  // plugins: [testPlugin()],
   build: {
     rollupOptions: {
       input: {
