@@ -1,2 +1,2 @@
 import "virtual:templates.scss";
-import "./css/main.scss";
+import "./scss/main.scss";
